@@ -1070,6 +1070,33 @@ body {
   border-color: var(--text-muted);
 }
 
+.stats-nav-btn {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--bg-main);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.stats-nav-btn:hover {
+  border-color: var(--primary-start);
+  color: var(--primary-start);
+}
+
+.stats-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--bg-main);
+  color: var(--text-muted);
+}
+
 .chart-period-label {
   font-size: 0.85rem;
   color: var(--text-secondary);

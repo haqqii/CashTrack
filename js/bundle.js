@@ -805,16 +805,28 @@ function initApp() {
   // Stats month/year filter
   const statsMonthSelect = document.getElementById('statsMonth');
   const statsYearSelect = document.getElementById('statsYear');
+  const statsYearPrev = document.getElementById('statsYearPrev');
+  const statsYearNext = document.getElementById('statsYearNext');
 
-  // Populate year dropdown
-  if (statsYearSelect) {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 5;
+  const MIN_YEAR = 2020;
+  const currentYear = new Date().getFullYear();
+
+  // Populate year dropdown (MIN_YEAR to current year + 1)
+  function populateYearDropdown() {
+    if (!statsYearSelect) return;
     let yearOptions = '';
-    for (let y = currentYear; y >= startYear; y--) {
+    for (let y = currentYear + 1; y >= MIN_YEAR; y--) {
       yearOptions += `<option value="${y}" ${y === statsYear ? 'selected' : ''}>${y}</option>`;
     }
     statsYearSelect.innerHTML = yearOptions;
+  }
+
+  populateYearDropdown();
+
+  // Update navigation buttons state
+  function updateNavButtons() {
+    if (statsYearPrev) statsYearPrev.disabled = statsYear <= MIN_YEAR;
+    if (statsYearNext) statsYearNext.disabled = statsYear >= currentYear + 1;
   }
 
   // Set current month
@@ -828,6 +840,8 @@ function initApp() {
   if (periodLabelEl) {
     periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
   }
+
+  updateNavButtons();
 
   // Month change handler
   if (statsMonthSelect) {
@@ -843,7 +857,33 @@ function initApp() {
     statsYearSelect.addEventListener('change', () => {
       statsYear = parseInt(statsYearSelect.value);
       if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
+      updateNavButtons();
       renderStats();
+    });
+  }
+
+  // Year navigation handlers
+  if (statsYearPrev) {
+    statsYearPrev.addEventListener('click', () => {
+      if (statsYear > MIN_YEAR) {
+        statsYear--;
+        if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
+        statsYearSelect.value = statsYear;
+        updateNavButtons();
+        renderStats();
+      }
+    });
+  }
+
+  if (statsYearNext) {
+    statsYearNext.addEventListener('click', () => {
+      if (statsYear < currentYear + 1) {
+        statsYear++;
+        if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
+        statsYearSelect.value = statsYear;
+        updateNavButtons();
+        renderStats();
+      }
     });
   }
 
