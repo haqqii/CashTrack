@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CashTrack - Pencatat Keuangan Gen Z</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/bundle.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+        </div>
+        CashTrack
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-view="dashboard">Dashboard</button>
+        <button class="nav-tab" data-view="transactions">Transaksi</button>
+        <button class="nav-tab" data-view="budget">Budget</button>
+        <button class="nav-tab" data-view="stats">Statistik</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Dashboard View -->
+    <section class="view active" id="dashboard-view">
+      <div class="hero-card">
+        <div class="hero-label">Total Saldo</div>
+        <div class="hero-balance" id="totalBalance">Rp 0</div>
+        <div class="hero-subtitle">✨ Kamu lagi on track nih!</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon income">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="stat-label">Total Pemasukan</div>
+          <div class="stat-value income" id="totalIncome">Rp 0</div>
+          <div class="stat-trend up" id="incomeTrend">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+            <span>+0% dari bulan lalu</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon expense">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="stat-label">Total Pengeluaran</div>
+          <div class="stat-value expense" id="totalExpense">Rp 0</div>
+          <div class="stat-trend down" id="expenseTrend">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <span>-0% dari bulan lalu</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon savings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2h0V5z"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M16 11h0"/></svg>
+          </div>
+          <div class="stat-label">Tingkat Tabungan</div>
+          <div class="stat-value" id="savingsRate">0%</div>
+          <div class="stat-trend" id="savingsTrend">
+            <span>💪 Semangat nabung!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2 class="section-title">Transaksi Terbaru</h2>
+        <button class="btn btn-primary" id="addTransBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Tambah
+        </button>
+      </div>
+
+      <div class="transaction-list" id="recentTransactions">
+        <!-- Transactions will be rendered here -->
+      </div>
+    </section>
+
+    <!-- Transactions View -->
+    <section class="view" id="transactions-view">
+      <div class="section-header">
+        <h2 class="section-title">Semua Transaksi</h2>
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="downloadTemplateBtn" title="Download Template">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Template
+          </button>
+          <label class="btn btn-secondary import-btn" title="Import dari Excel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+            <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+          </label>
+          <button class="btn btn-secondary" id="exportCsvBtn" title="Export CSV">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="btn btn-primary" id="addTransBtn2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Tambah
+          </button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Cari transaksi...">
+        <button class="search-clear" id="searchClear" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Semua</button>
+        <button class="filter-btn" data-filter="income">Pemasukan</button>
+        <button class="filter-btn" data-filter="expense">Pengeluaran</button>
+      </div>
+
+      <div class="transaction-list" id="allTransactions">
+        <!-- Transactions will be rendered here -->
+      </div>
+    </section>
+
+    <!-- Budget View -->
+    <section class="view" id="budget-view">
+      <div class="section-header">
+        <h2 class="section-title">Pengaturan Budget</h2>
+      </div>
+
+      <div class="add-budget-form">
+        <h3>Tambah Budget Kategori</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Kategori</label>
+            <select class="form-input" id="budgetCategory">
+              <option value="">Pilih kategori...</option>
+              <option value="food">🍔 Makanan & Minuman</option>
+              <option value="transport">🚗 Transportasi</option>
+              <option value="shopping">🛒 Belanja</option>
+              <option value="entertainment">🎮 Hiburan</option>
+              <option value="health">💊 Kesehatan</option>
+              <option value="education">📚 Pendidikan</option>
+              <option value="home">🏠 Rumah</option>
+              <option value="bills">📱 Tagihan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Limit Budget (Rp)</label>
+            <input type="number" class="form-input" id="budgetLimit" placeholder="500000">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="addBudgetBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Simpan Budget
+        </button>
+      </div>
+
+      <div class="budget-grid" id="budgetList">
+        <!-- Budget cards will be rendered here -->
+      </div>
+    </section>
+
+    <!-- Stats View -->
+    <section class="view" id="stats-view">
+      <div class="section-header">
+        <h2 class="section-title">Statistik Keuangan</h2>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-header">
+          <h3 class="chart-title">Pemasukan vs Pengeluaran</h3>
+          <div class="chart-period">
+            <button class="period-btn active" data-period="6bulan">6 Bulan</button>
+            <button class="period-btn" data-period="1tahun">1 Tahun</button>
+          </div>
+        </div>
+        <div class="bar-chart" id="barChart">
+          <!-- Bar chart will be rendered here -->
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-header">
+          <h3 class="chart-title">Distribusi Pengeluaran</h3>
+        </div>
+        <div class="donut-container">
+          <div class="donut-chart" id="donutChart">
+            <svg viewBox="0 0 200 200" width="200" height="200">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-main)" stroke-width="24"/>
+            </svg>
+            <div class="donut-center">
+              <div class="value" id="donutTotal">Rp 0</div>
+              <div class="label">Total</div>
+            </div>
+          </div>
+          <div class="category-legend" id="categoryLegend">
+            <!-- Legend will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add Transaction Modal -->
+  <div class="modal-overlay" id="transactionModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Tambah Transaksi</h3>
+        <button class="modal-close" id="closeModal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="transactionForm">
+        <input type="hidden" id="transactionId">
+
+        <div class="form-group">
+          <label class="form-label">Jenis Transaksi</label>
+          <div class="type-toggle">
+            <button type="button" class="type-btn income active" data-type="income">💰 Pemasukan</button>
+            <button type="button" class="type-btn expense" data-type="expense">💸 Pengeluaran</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Jumlah (Rp)</label>
+          <div class="amount-input-wrapper">
+            <span class="amount-prefix">Rp</span>
+            <input type="number" class="form-input" id="amount" placeholder="0" min="1" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <div class="category-grid" id="categoryGrid">
+            <!-- Categories will be rendered here -->
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi</label>
+          <input type="text" class="form-input" id="description" placeholder="Mau keterangan apa?">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tanggal</label>
+          <input type="date" class="form-input" id="transactionDate" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          Simpan Transaksi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+</body>
+</html>
