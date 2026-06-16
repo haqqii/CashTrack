@@ -35,6 +35,10 @@ let currentFilter = 'all';
 let currentType = 'income';
 let editingTransaction = null;
 let searchQuery = '';
+let dateFrom = null;
+let dateTo = null;
+let donutMonth = new Date().getMonth();
+let donutYear = new Date().getFullYear();
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,10 +53,108 @@ function initApp() {
   setupBudgetForm();
   setupFilters();
   setupSearch();
+  setupDateFilter();
+  setupDonutPeriod();
   setupExport();
   setupImport();
   setupCustomEvents();
   renderAll();
+}
+
+// ==================== DONUT PERIOD FILTER ====================
+function setupDonutPeriod() {
+  const donutMonthSelect = document.getElementById('donutMonth');
+  const donutYearSelect = document.getElementById('donutYear');
+
+  // Populate year dropdown
+  if (donutYearSelect) {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 5;
+    let yearOptions = '';
+    for (let y = currentYear; y >= startYear; y--) {
+      yearOptions += `<option value="${y}" ${y === donutYear ? 'selected' : ''}>${y}</option>`;
+    }
+    donutYearSelect.innerHTML = yearOptions;
+  }
+
+  // Set current month
+  if (donutMonthSelect) {
+    donutMonthSelect.value = donutMonth;
+  }
+
+  // Month change handler
+  if (donutMonthSelect) {
+    donutMonthSelect.addEventListener('change', () => {
+      donutMonth = parseInt(donutMonthSelect.value);
+      renderStats();
+    });
+  }
+
+  // Year change handler
+  if (donutYearSelect) {
+    donutYearSelect.addEventListener('change', () => {
+      donutYear = parseInt(donutYearSelect.value);
+      renderStats();
+    });
+  }
+}
+
+// ==================== DATE FILTER ====================
+function filterByDate(transactions) {
+  if (!dateFrom && !dateTo) return transactions;
+
+  return transactions.filter(t => {
+    const transDate = new Date(t.date);
+    transDate.setHours(0, 0, 0, 0);
+
+    if (dateFrom && dateTo) {
+      const from = new Date(dateFrom);
+      const to = new Date(dateTo);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return transDate >= from && transDate <= to;
+    }
+
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      from.setHours(0, 0, 0, 0);
+      return transDate >= from;
+    }
+
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      return transDate <= to;
+    }
+
+    return true;
+  });
+}
+
+function setupDateFilter() {
+  const dateFromInput = document.getElementById('dateFrom');
+  const dateToInput = document.getElementById('dateTo');
+  const applyBtn = document.getElementById('applyDateFilter');
+  const clearBtn = document.getElementById('clearDateFilter');
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      dateFrom = dateFromInput?.value || null;
+      dateTo = dateToInput?.value || null;
+      renderTransactionsList();
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (dateFromInput) dateFromInput.value = '';
+      if (dateToInput) dateToInput.value = '';
+      dateFrom = null;
+      dateTo = null;
+      renderTransactionsList();
+      showToast('Filter tanggal direset', 'info');
+    });
+  }
 }
 
 // ==================== NAVIGATION ====================
@@ -285,7 +387,8 @@ function setupExport() {
 }
 
 function handleExport() {
-  const transactions = getTransactionsByFilter(currentFilter);
+  let transactions = getTransactionsByFilter(currentFilter);
+  transactions = filterByDate(transactions);
   if (transactions.length === 0) {
     showToast('Tidak ada transaksi untuk di-export', 'error');
     return;
@@ -381,9 +484,10 @@ function renderAll() {
 }
 
 function renderTransactionsList() {
-  const transactions = searchQuery
+  let transactions = searchQuery
     ? searchTransactions(searchQuery, currentFilter)
     : getTransactionsByFilter(currentFilter);
+  transactions = filterByDate(transactions);
   renderTransactions(transactions, 'recentTransactions');
   renderTransactions(transactions, 'allTransactions');
 }

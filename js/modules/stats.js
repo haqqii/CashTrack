@@ -78,8 +78,13 @@ export function getMonthlyData(months = 6) {
   return data;
 }
 
-export function getCategoryBreakdown() {
-  const transactions = Storage.getTransactions().filter(t => t.type === 'expense');
+export function getCategoryBreakdown(month, year) {
+  const transactions = Storage.getTransactions().filter(t => {
+    if (t.type !== 'expense') return false;
+    const transDate = new Date(t.date);
+    return transDate.getMonth() === month && transDate.getFullYear() === year;
+  });
+
   const categoryTotals = {};
 
   transactions.forEach(t => {

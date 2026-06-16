@@ -39,6 +39,20 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
+// Format number with thousand separators (Indonesian style)
+function formatNumberInput(value) {
+  // Remove all non-digit characters
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+  // Add thousand separators
+  return parseInt(digits).toLocaleString('id-ID');
+}
+
+// Parse formatted number back to integer
+function parseFormattedNumber(value) {
+  return parseInt(value.replace(/\./g, '')) || 0;
+}
+
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   return new Intl.DateTimeFormat('id-ID', {
@@ -257,8 +271,13 @@ function getMonthlyData(months = 6) {
   return data;
 }
 
-function getCategoryBreakdown() {
-  const transactions = Storage.getTransactions().filter(t => t.type === 'expense');
+function getCategoryBreakdown(month, year) {
+  const transactions = Storage.getTransactions().filter(t => {
+    if (t.type !== 'expense') return false;
+    const transDate = new Date(t.date);
+    return transDate.getMonth() === month && transDate.getFullYear() === year;
+  });
+
   const categoryTotals = {};
   transactions.forEach(t => { categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount; });
   return Object.entries(categoryTotals).map(([category, amount]) => {
@@ -339,7 +358,7 @@ function renderTransactions(transactions, containerId) {
   container.querySelectorAll('.transaction-item .btn-icon.delete').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.closest('.transaction-item').dataset.id;
-      if (confirm('Yakin mau hapus transaksi ini?')) { deleteTransaction(id); showToast('Transaksi berhasil dihapus!', 'success'); renderAll(); }
+      openDeleteModal(id);
     });
   });
 }
@@ -401,10 +420,15 @@ function renderDonutChart() {
   const container = document.getElementById('donutChart');
   const legend = document.getElementById('categoryLegend');
   if (!container || !legend) return;
-  const categories = getCategoryBreakdown();
+  const categories = getCategoryBreakdown(donutMonth, donutYear);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
+
+  // Get month label
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const periodLabel = `${monthNames[donutMonth]} ${donutYear}`;
+
   if (document.getElementById('donutTotal')) document.getElementById('donutTotal').textContent = formatCurrency(total);
-  if (categories.length === 0) { container.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200"><circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-main)" stroke-width="24"/></svg><div class="donut-center"><div class="value">Rp 0</div><div class="label">Total</div></div>`; legend.innerHTML = '<p style="color: var(--text-secondary)">Tidak ada data pengeluaran</p>'; return; }
+  if (categories.length === 0) { container.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200"><circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-main)" stroke-width="24"/></svg><div class="donut-center"><div class="value">Rp 0</div><div class="label">${periodLabel}</div></div>`; legend.innerHTML = '<p style="color: var(--text-secondary)">Tidak ada data pengeluaran</p>'; return; }
   let currentAngle = 0;
   const circumference = 2 * Math.PI * 80;
   const gaps = 4;
@@ -415,7 +439,7 @@ function renderDonutChart() {
     currentAngle += (percentage / 100) * 360;
     return `<circle cx="100" cy="100" r="80" fill="none" stroke="${cat.color}" stroke-width="24" stroke-dasharray="${dashLength} ${circumference}" stroke-dashoffset="${-rotation * circumference / 360}" transform="rotate(-90 100 100)"/>`;
   });
-  container.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200">${segments.join('')}</svg><div class="donut-center"><div class="value">${formatCurrency(total)}</div><div class="label">Total</div></div>`;
+  container.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200">${segments.join('')}</svg><div class="donut-center"><div class="value">${formatCurrency(total)}</div><div class="label">${periodLabel}</div></div>`;
   legend.innerHTML = categories.slice(0, 6).map(cat => { const percentage = Math.round((cat.amount / total) * 100); return `<div class="legend-item"><div class="legend-color" style="background: ${cat.color}"></div><div class="legend-info"><div class="legend-name">${cat.icon} ${cat.name}</div><div class="legend-value">${formatCurrency(cat.amount)} (${percentage}%)</div></div></div>`; }).join('');
 }
 
@@ -447,7 +471,7 @@ function openModal(transaction = null) {
   if (dateInput) dateInput.value = formatDateInput(new Date());
   if (transaction) {
     document.getElementById('transactionId').value = transaction.id;
-    document.getElementById('amount').value = transaction.amount;
+    document.getElementById('amount').value = formatNumberInput(transaction.amount.toString());
     document.getElementById('description').value = transaction.description;
     document.getElementById('transactionDate').value = transaction.date;
     currentType = transaction.type;
@@ -527,14 +551,121 @@ function parseExcelToTransactions(file) {
 // ==================== MAIN APP ====================
 let currentFilter = 'all';
 let searchQuery = '';
+let dateFrom = null;
+let dateTo = null;
+let donutMonth = new Date().getMonth();
+let donutYear = new Date().getFullYear();
+
+function filterByDate(transactions) {
+  if (!dateFrom && !dateTo) return transactions;
+
+  return transactions.filter(t => {
+    const transDate = new Date(t.date);
+    transDate.setHours(0, 0, 0, 0);
+
+    if (dateFrom && dateTo) {
+      const from = new Date(dateFrom);
+      const to = new Date(dateTo);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return transDate >= from && transDate <= to;
+    }
+
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      from.setHours(0, 0, 0, 0);
+      return transDate >= from;
+    }
+
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      return transDate <= to;
+    }
+
+    return true;
+  });
+}
 
 function renderAll() {
-  const transactions = searchQuery ? searchTransactions(searchQuery, currentFilter) : getTransactionsByFilter(currentFilter);
+  let transactions = searchQuery ? searchTransactions(searchQuery, currentFilter) : getTransactionsByFilter(currentFilter);
+  transactions = filterByDate(transactions);
   renderTransactions(transactions, 'recentTransactions');
   renderTransactions(transactions, 'allTransactions');
   updateDashboard();
   renderBudgets();
   renderStats();
+}
+
+// ==================== DELETE MODAL ====================
+let currentDeleteId = null;
+
+function openDeleteModal(id) {
+  const transaction = getTransactionById(id);
+  if (!transaction) return;
+
+  currentDeleteId = id;
+  const category = getCategoryInfo(transaction.category, transaction.type);
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteModalInfo = document.getElementById('deleteModalInfo');
+
+  if (!deleteModal || !deleteModalInfo) return;
+
+  // Set transaction info in modal
+  deleteModalInfo.innerHTML = `
+    <div class="info-row">
+      <span class="info-label">Kategori</span>
+      <span class="info-value">${category.icon} ${category.name}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Jumlah</span>
+      <span class="info-value ${transaction.type}">${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Tanggal</span>
+      <span class="info-value">${formatDate(transaction.date)}</span>
+    </div>
+  `;
+
+  // Show modal
+  deleteModal.classList.add('active');
+}
+
+function setupDeleteModal() {
+  const deleteModal = document.getElementById('deleteModal');
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+  const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', () => {
+      if (currentDeleteId) {
+        deleteTransaction(currentDeleteId);
+        showToast('Transaksi berhasil dihapus!', 'success');
+        renderAll();
+      }
+      closeDeleteModal();
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeDeleteModal);
+  }
+
+  if (deleteModal) {
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) {
+        closeDeleteModal();
+      }
+    });
+  }
+}
+
+function closeDeleteModal() {
+  const deleteModal = document.getElementById('deleteModal');
+  if (deleteModal) {
+    deleteModal.classList.remove('active');
+  }
+  currentDeleteId = null;
 }
 
 function initApp() {
@@ -570,12 +701,33 @@ function initApp() {
     });
   });
 
+  // Amount input auto-format
+  const amountInput = document.getElementById('amount');
+  if (amountInput) {
+    amountInput.addEventListener('input', (e) => {
+      const cursorPos = e.target.selectionStart;
+      const oldLength = e.target.value.length;
+      const formatted = formatNumberInput(e.target.value);
+      e.target.value = formatted;
+      // Adjust cursor position
+      const newLength = formatted.length;
+      const newPos = cursorPos + (newLength - oldLength);
+      e.target.setSelectionRange(newPos, newPos);
+    });
+    // Format on blur (when user leaves the field)
+    amountInput.addEventListener('blur', (e) => {
+      if (e.target.value) {
+        e.target.value = formatNumberInput(e.target.value);
+      }
+    });
+  }
+
   // Form submit
   const form = document.getElementById('transactionForm');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const amount = parseFloat(document.getElementById('amount').value);
+      const amount = parseFormattedNumber(document.getElementById('amount').value);
       const description = document.getElementById('description').value;
       const date = document.getElementById('transactionDate').value;
       const selectedCategory = document.querySelector('.category-item.selected');
@@ -622,11 +774,73 @@ function initApp() {
     });
   }
 
+  // Date filter
+  const dateFromInput = document.getElementById('dateFrom');
+  const dateToInput = document.getElementById('dateTo');
+  const applyDateFilterBtn = document.getElementById('applyDateFilter');
+  const clearDateFilterBtn = document.getElementById('clearDateFilter');
+
+  if (applyDateFilterBtn) {
+    applyDateFilterBtn.addEventListener('click', () => {
+      dateFrom = dateFromInput?.value || null;
+      dateTo = dateToInput?.value || null;
+      renderAll();
+    });
+  }
+
+  if (clearDateFilterBtn) {
+    clearDateFilterBtn.addEventListener('click', () => {
+      if (dateFromInput) dateFromInput.value = '';
+      if (dateToInput) dateToInput.value = '';
+      dateFrom = null;
+      dateTo = null;
+      renderAll();
+      showToast('Filter tanggal direset', 'info');
+    });
+  }
+
+  // Donut chart month/year filter
+  const donutMonthSelect = document.getElementById('donutMonth');
+  const donutYearSelect = document.getElementById('donutYear');
+
+  // Populate year dropdown
+  if (donutYearSelect) {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 5;
+    let yearOptions = '';
+    for (let y = currentYear; y >= startYear; y--) {
+      yearOptions += `<option value="${y}" ${y === donutYear ? 'selected' : ''}>${y}</option>`;
+    }
+    donutYearSelect.innerHTML = yearOptions;
+  }
+
+  // Set current month
+  if (donutMonthSelect) {
+    donutMonthSelect.value = donutMonth;
+  }
+
+  // Month change handler
+  if (donutMonthSelect) {
+    donutMonthSelect.addEventListener('change', () => {
+      donutMonth = parseInt(donutMonthSelect.value);
+      renderDonutChart();
+    });
+  }
+
+  // Year change handler
+  if (donutYearSelect) {
+    donutYearSelect.addEventListener('change', () => {
+      donutYear = parseInt(donutYearSelect.value);
+      renderDonutChart();
+    });
+  }
+
   // Export
   const exportBtn = document.getElementById('exportCsvBtn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      const transactions = getTransactionsByFilter(currentFilter);
+      let transactions = searchQuery ? searchTransactions(searchQuery, currentFilter) : getTransactionsByFilter(currentFilter);
+      transactions = filterByDate(transactions);
       if (transactions.length === 0) { showToast('Tidak ada transaksi untuk di-export', 'error'); return; }
       exportTransactionsToCSV(transactions);
       showToast('CSV berhasil di-download! 📥', 'success');
@@ -666,6 +880,9 @@ function initApp() {
   window.deleteBudgetById = (id) => {
     if (confirm('Yakin mau hapus budget ini?')) { deleteBudget(id); showToast('Budget berhasil dihapus!', 'success'); renderBudgets(); }
   };
+
+  // Delete modal setup
+  setupDeleteModal();
 
   // Initial render
   renderAll();

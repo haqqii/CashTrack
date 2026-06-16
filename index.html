@@ -136,6 +136,25 @@
         <button class="filter-btn" data-filter="expense">Pengeluaran</button>
       </div>
 
+      <div class="date-filter-bar">
+        <div class="date-filter-group">
+          <label class="date-filter-label">Dari Tanggal</label>
+          <input type="date" class="date-filter-input" id="dateFrom" placeholder="Dari">
+        </div>
+        <div class="date-filter-group">
+          <label class="date-filter-label">Sampai Tanggal</label>
+          <input type="date" class="date-filter-input" id="dateTo" placeholder="Sampai">
+        </div>
+        <button class="btn btn-secondary date-filter-btn" id="applyDateFilter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          Filter
+        </button>
+        <button class="btn btn-secondary date-filter-btn" id="clearDateFilter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          Reset
+        </button>
+      </div>
+
       <div class="transaction-list" id="allTransactions">
         <!-- Transactions will be rendered here -->
       </div>
@@ -202,6 +221,25 @@
       <div class="chart-container">
         <div class="chart-header">
           <h3 class="chart-title">Distribusi Pengeluaran</h3>
+          <div class="donut-filter-bar">
+            <select class="donut-filter-select" id="donutMonth">
+              <option value="0">Januari</option>
+              <option value="1">Februari</option>
+              <option value="2">Maret</option>
+              <option value="3">April</option>
+              <option value="4">Mei</option>
+              <option value="5">Juni</option>
+              <option value="6">Juli</option>
+              <option value="7">Agustus</option>
+              <option value="8">September</option>
+              <option value="9">Oktober</option>
+              <option value="10">November</option>
+              <option value="11">Desember</option>
+            </select>
+            <select class="donut-filter-select" id="donutYear">
+              <!-- Years will be populated by JS -->
+            </select>
+          </div>
         </div>
         <div class="donut-container">
           <div class="donut-chart" id="donutChart">
@@ -246,7 +284,7 @@
           <label class="form-label">Jumlah (Rp)</label>
           <div class="amount-input-wrapper">
             <span class="amount-prefix">Rp</span>
-            <input type="number" class="form-input" id="amount" placeholder="0" min="1" required>
+            <input type="text" class="form-input" id="amount" placeholder="0" inputmode="numeric" pattern="[0-9.,]*" required>
           </div>
         </div>
 
@@ -277,6 +315,25 @@
 
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal delete-modal">
+      <div class="delete-modal-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </div>
+      <h3 class="delete-modal-title">Hapus Transaksi?</h3>
+      <p class="delete-modal-text">Transaksi yang dihapus tidak bisa dikembalikan. Yakin mau lanjut?</p>
+      <div class="delete-modal-info" id="deleteModalInfo"></div>
+      <div class="delete-modal-actions">
+        <button class="btn btn-secondary" id="cancelDeleteBtn">Batal</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          Hapus
+        </button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

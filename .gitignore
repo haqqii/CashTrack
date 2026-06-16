@@ -2,6 +2,10 @@
 node_modules/
 package-lock.json
 
+# Git
+.git/
+.playwright-mcp/
+
 # Build outputs
 dist/
 build/

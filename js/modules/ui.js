@@ -7,7 +7,8 @@ import {
   CATEGORY_COLORS,
   getCategoriesByType,
   getCategoryInfo,
-  deleteTransaction
+  deleteTransaction,
+  getTransactionById
 } from './transactions.js';
 import { getBudgetsWithSpent, getExpenseCategories, deleteBudget } from './budget.js';
 import { calculateStats, getMonthlyData, getCategoryBreakdown } from './stats.js';
@@ -110,11 +111,65 @@ export function renderTransactions(transactions, containerId) {
 }
 
 function handleDeleteTransaction(id) {
-  if (confirm('Yakin mau hapus transaksi ini?')) {
+  const transaction = getTransactionById(id);
+  if (!transaction) return;
+
+  const category = getCategoryInfo(transaction.category, transaction.type);
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteModalInfo = document.getElementById('deleteModalInfo');
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+  const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+  // Set transaction info in modal
+  deleteModalInfo.innerHTML = `
+    <div class="info-row">
+      <span class="info-label">Kategori</span>
+      <span class="info-value">${category.icon} ${category.name}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Jumlah</span>
+      <span class="info-value ${transaction.type}">${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Tanggal</span>
+      <span class="info-value">${formatDate(transaction.date)}</span>
+    </div>
+  `;
+
+  // Show modal
+  deleteModal.classList.add('active');
+
+  // Handle confirm
+  const handleConfirm = () => {
     deleteTransaction(id);
     showToast('Transaksi berhasil dihapus!', 'success');
     window.dispatchEvent(new CustomEvent('transactionsUpdated'));
+    closeDeleteModal();
+  };
+
+  // Handle cancel
+  const handleCancel = () => {
+    closeDeleteModal();
+  };
+
+  // Close modal function
+  function closeDeleteModal() {
+    deleteModal.classList.remove('active');
+    confirmBtn.removeEventListener('click', handleConfirm);
+    cancelBtn.removeEventListener('click', handleCancel);
   }
+
+  // Add event listeners
+  confirmBtn.addEventListener('click', handleConfirm);
+  cancelBtn.addEventListener('click', handleCancel);
+
+  // Close on overlay click
+  const handleOverlayClick = (e) => {
+    if (e.target === deleteModal) {
+      closeDeleteModal();
+    }
+  };
+  deleteModal.addEventListener('click', handleOverlayClick);
 }
 
 // ==================== DASHBOARD ====================
@@ -249,13 +304,17 @@ export function renderBarChart() {
   `).join('');
 }
 
-export function renderDonutChart() {
+export function renderDonutChart(donutMonth, donutYear) {
   const container = document.getElementById('donutChart');
   const legend = document.getElementById('categoryLegend');
   if (!container || !legend) return;
 
-  const categories = getCategoryBreakdown();
+  const categories = getCategoryBreakdown(donutMonth, donutYear);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
+
+  // Get month label
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const periodLabel = `${monthNames[donutMonth]} ${donutYear}`;
 
   const donutTotalEl = document.getElementById('donutTotal');
   if (donutTotalEl) donutTotalEl.textContent = formatCurrency(total);
@@ -267,7 +326,7 @@ export function renderDonutChart() {
       </svg>
       <div class="donut-center">
         <div class="value">Rp 0</div>
-        <div class="label">Total</div>
+        <div class="label">${periodLabel}</div>
       </div>
     `;
     legend.innerHTML = '<p style="color: var(--text-secondary)">Tidak ada data pengeluaran</p>';
@@ -293,7 +352,7 @@ export function renderDonutChart() {
     </svg>
     <div class="donut-center">
       <div class="value">${formatCurrency(total)}</div>
-      <div class="label">Total</div>
+      <div class="label">${periodLabel}</div>
     </div>
   `;
 
@@ -311,9 +370,9 @@ export function renderDonutChart() {
   }).join('');
 }
 
-export function renderStats() {
+export function renderStats(donutMonth, donutYear) {
   renderBarChart();
-  renderDonutChart();
+  renderDonutChart(donutMonth, donutYear);
 }
 
 // ==================== CATEGORY GRID ====================
