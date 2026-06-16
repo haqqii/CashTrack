@@ -203,15 +203,31 @@
     <section class="view" id="stats-view">
       <div class="section-header">
         <h2 class="section-title">Statistik Keuangan</h2>
+        <div class="stats-filter-bar">
+          <select class="stats-filter-select" id="statsMonth">
+            <option value="0">Januari</option>
+            <option value="1">Februari</option>
+            <option value="2">Maret</option>
+            <option value="3">April</option>
+            <option value="4">Mei</option>
+            <option value="5">Juni</option>
+            <option value="6">Juli</option>
+            <option value="7">Agustus</option>
+            <option value="8">September</option>
+            <option value="9">Oktober</option>
+            <option value="10">November</option>
+            <option value="11">Desember</option>
+          </select>
+          <select class="stats-filter-select" id="statsYear">
+            <!-- Years will be populated by JS -->
+          </select>
+        </div>
       </div>
 
       <div class="chart-container">
         <div class="chart-header">
           <h3 class="chart-title">Pemasukan vs Pengeluaran</h3>
-          <div class="chart-period">
-            <button class="period-btn active" data-period="6bulan">6 Bulan</button>
-            <button class="period-btn" data-period="1tahun">1 Tahun</button>
-          </div>
+          <span class="chart-period-label" id="statsPeriodLabel">Juni 2026</span>
         </div>
         <div class="bar-chart" id="barChart">
           <!-- Bar chart will be rendered here -->
@@ -221,25 +237,6 @@
       <div class="chart-container">
         <div class="chart-header">
           <h3 class="chart-title">Distribusi Pengeluaran</h3>
-          <div class="donut-filter-bar">
-            <select class="donut-filter-select" id="donutMonth">
-              <option value="0">Januari</option>
-              <option value="1">Februari</option>
-              <option value="2">Maret</option>
-              <option value="3">April</option>
-              <option value="4">Mei</option>
-              <option value="5">Juni</option>
-              <option value="6">Juli</option>
-              <option value="7">Agustus</option>
-              <option value="8">September</option>
-              <option value="9">Oktober</option>
-              <option value="10">November</option>
-              <option value="11">Desember</option>
-            </select>
-            <select class="donut-filter-select" id="donutYear">
-              <!-- Years will be populated by JS -->
-            </select>
-          </div>
         </div>
         <div class="donut-container">
           <div class="donut-chart" id="donutChart">

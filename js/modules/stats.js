@@ -46,17 +46,17 @@ export function calculateStats() {
   return { balance, totalIncome, totalExpense, savingsRate, incomeTrend, expenseTrend };
 }
 
-export function getMonthlyData(months = 6) {
+export function getMonthlyData(year) {
   const transactions = Storage.getTransactions();
-  const now = new Date();
   const data = [];
 
-  for (let i = months - 1; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  // Get all 12 months of the selected year
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(year, i, 1);
     const monthData = {
       label: date.toLocaleDateString('id-ID', { month: 'short' }),
-      year: date.getFullYear(),
-      month: date.getMonth(),
+      year: year,
+      month: i,
       income: 0,
       expense: 0
     };

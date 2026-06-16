@@ -37,8 +37,8 @@ let editingTransaction = null;
 let searchQuery = '';
 let dateFrom = null;
 let dateTo = null;
-let donutMonth = new Date().getMonth();
-let donutYear = new Date().getFullYear();
+let statsMonth = new Date().getMonth();
+let statsYear = new Date().getFullYear();
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,39 +61,48 @@ function initApp() {
   renderAll();
 }
 
-// ==================== DONUT PERIOD FILTER ====================
+// ==================== STATS FILTER ====================
 function setupDonutPeriod() {
-  const donutMonthSelect = document.getElementById('donutMonth');
-  const donutYearSelect = document.getElementById('donutYear');
+  const statsMonthSelect = document.getElementById('statsMonth');
+  const statsYearSelect = document.getElementById('statsYear');
 
   // Populate year dropdown
-  if (donutYearSelect) {
+  if (statsYearSelect) {
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 5;
     let yearOptions = '';
     for (let y = currentYear; y >= startYear; y--) {
-      yearOptions += `<option value="${y}" ${y === donutYear ? 'selected' : ''}>${y}</option>`;
+      yearOptions += `<option value="${y}" ${y === statsYear ? 'selected' : ''}>${y}</option>`;
     }
-    donutYearSelect.innerHTML = yearOptions;
+    statsYearSelect.innerHTML = yearOptions;
   }
 
   // Set current month
-  if (donutMonthSelect) {
-    donutMonthSelect.value = donutMonth;
+  if (statsMonthSelect) {
+    statsMonthSelect.value = statsMonth;
+  }
+
+  // Update period label
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const periodLabelEl = document.getElementById('statsPeriodLabel');
+  if (periodLabelEl) {
+    periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
   }
 
   // Month change handler
-  if (donutMonthSelect) {
-    donutMonthSelect.addEventListener('change', () => {
-      donutMonth = parseInt(donutMonthSelect.value);
+  if (statsMonthSelect) {
+    statsMonthSelect.addEventListener('change', () => {
+      statsMonth = parseInt(statsMonthSelect.value);
+      if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
       renderStats();
     });
   }
 
   // Year change handler
-  if (donutYearSelect) {
-    donutYearSelect.addEventListener('change', () => {
-      donutYear = parseInt(donutYearSelect.value);
+  if (statsYearSelect) {
+    statsYearSelect.addEventListener('change', () => {
+      statsYear = parseInt(statsYearSelect.value);
+      if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
       renderStats();
     });
   }

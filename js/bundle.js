@@ -252,13 +252,13 @@ function calculateStats() {
   return { balance, totalIncome, totalExpense, savingsRate, incomeTrend, expenseTrend };
 }
 
-function getMonthlyData(months = 6) {
+function getMonthlyData(year) {
   const transactions = Storage.getTransactions();
-  const now = new Date();
   const data = [];
-  for (let i = months - 1; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthData = { label: date.toLocaleDateString('id-ID', { month: 'short' }), year: date.getFullYear(), month: date.getMonth(), income: 0, expense: 0 };
+  // Get all 12 months of the selected year
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(year, i, 1);
+    const monthData = { label: date.toLocaleDateString('id-ID', { month: 'short' }), year: year, month: i, income: 0, expense: 0 };
     transactions.forEach(t => {
       const tDate = new Date(t.date);
       if (tDate.getFullYear() === monthData.year && tDate.getMonth() === monthData.month) {
@@ -411,7 +411,7 @@ function renderBudgets() {
 function renderBarChart() {
   const container = document.getElementById('barChart');
   if (!container) return;
-  const chartData = getMonthlyData(6);
+  const chartData = getMonthlyData(statsYear);
   const maxValue = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
   container.innerHTML = chartData.map(d => `<div class="bar-group"><div class="bar-wrapper"><div class="bar income" style="height: ${(d.income / maxValue) * 100}%"></div><div class="bar expense" style="height: ${(d.expense / maxValue) * 100}%"></div></div><span class="bar-label">${d.label}</span></div>`).join('');
 }
@@ -420,12 +420,12 @@ function renderDonutChart() {
   const container = document.getElementById('donutChart');
   const legend = document.getElementById('categoryLegend');
   if (!container || !legend) return;
-  const categories = getCategoryBreakdown(donutMonth, donutYear);
+  const categories = getCategoryBreakdown(statsMonth, statsYear);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
   // Get month label
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-  const periodLabel = `${monthNames[donutMonth]} ${donutYear}`;
+  const periodLabel = `${monthNames[statsMonth]} ${statsYear}`;
 
   if (document.getElementById('donutTotal')) document.getElementById('donutTotal').textContent = formatCurrency(total);
   if (categories.length === 0) { container.innerHTML = `<svg viewBox="0 0 200 200" width="200" height="200"><circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-main)" stroke-width="24"/></svg><div class="donut-center"><div class="value">Rp 0</div><div class="label">${periodLabel}</div></div>`; legend.innerHTML = '<p style="color: var(--text-secondary)">Tidak ada data pengeluaran</p>'; return; }
@@ -443,7 +443,10 @@ function renderDonutChart() {
   legend.innerHTML = categories.slice(0, 6).map(cat => { const percentage = Math.round((cat.amount / total) * 100); return `<div class="legend-item"><div class="legend-color" style="background: ${cat.color}"></div><div class="legend-info"><div class="legend-name">${cat.icon} ${cat.name}</div><div class="legend-value">${formatCurrency(cat.amount)} (${percentage}%)</div></div></div>`; }).join('');
 }
 
-function renderStats() { renderBarChart(); renderDonutChart(); }
+function renderStats() {
+  renderBarChart();
+  renderDonutChart();
+}
 
 function renderCategoryGrid(type, selectedCategory = null) {
   const grid = document.getElementById('categoryGrid');
@@ -553,8 +556,8 @@ let currentFilter = 'all';
 let searchQuery = '';
 let dateFrom = null;
 let dateTo = null;
-let donutMonth = new Date().getMonth();
-let donutYear = new Date().getFullYear();
+let statsMonth = new Date().getMonth();
+let statsYear = new Date().getFullYear();
 
 function filterByDate(transactions) {
   if (!dateFrom && !dateTo) return transactions;
@@ -799,39 +802,48 @@ function initApp() {
     });
   }
 
-  // Donut chart month/year filter
-  const donutMonthSelect = document.getElementById('donutMonth');
-  const donutYearSelect = document.getElementById('donutYear');
+  // Stats month/year filter
+  const statsMonthSelect = document.getElementById('statsMonth');
+  const statsYearSelect = document.getElementById('statsYear');
 
   // Populate year dropdown
-  if (donutYearSelect) {
+  if (statsYearSelect) {
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 5;
     let yearOptions = '';
     for (let y = currentYear; y >= startYear; y--) {
-      yearOptions += `<option value="${y}" ${y === donutYear ? 'selected' : ''}>${y}</option>`;
+      yearOptions += `<option value="${y}" ${y === statsYear ? 'selected' : ''}>${y}</option>`;
     }
-    donutYearSelect.innerHTML = yearOptions;
+    statsYearSelect.innerHTML = yearOptions;
   }
 
   // Set current month
-  if (donutMonthSelect) {
-    donutMonthSelect.value = donutMonth;
+  if (statsMonthSelect) {
+    statsMonthSelect.value = statsMonth;
+  }
+
+  // Update period label
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const periodLabelEl = document.getElementById('statsPeriodLabel');
+  if (periodLabelEl) {
+    periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
   }
 
   // Month change handler
-  if (donutMonthSelect) {
-    donutMonthSelect.addEventListener('change', () => {
-      donutMonth = parseInt(donutMonthSelect.value);
+  if (statsMonthSelect) {
+    statsMonthSelect.addEventListener('change', () => {
+      statsMonth = parseInt(statsMonthSelect.value);
+      if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
       renderDonutChart();
     });
   }
 
   // Year change handler
-  if (donutYearSelect) {
-    donutYearSelect.addEventListener('change', () => {
-      donutYear = parseInt(donutYearSelect.value);
-      renderDonutChart();
+  if (statsYearSelect) {
+    statsYearSelect.addEventListener('change', () => {
+      statsYear = parseInt(statsYearSelect.value);
+      if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
+      renderStats();
     });
   }
 

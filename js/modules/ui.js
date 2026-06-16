@@ -286,11 +286,11 @@ export function renderBudgets() {
 }
 
 // ==================== STATISTICS RENDERING ====================
-export function renderBarChart() {
+export function renderBarChart(year) {
   const container = document.getElementById('barChart');
   if (!container) return;
 
-  const chartData = getMonthlyData(6);
+  const chartData = getMonthlyData(year);
   const maxValue = Math.max(...chartData.map(d => Math.max(d.income, d.expense)), 1);
 
   container.innerHTML = chartData.map(d => `
@@ -304,17 +304,17 @@ export function renderBarChart() {
   `).join('');
 }
 
-export function renderDonutChart(donutMonth, donutYear) {
+export function renderDonutChart(statsMonth, statsYear) {
   const container = document.getElementById('donutChart');
   const legend = document.getElementById('categoryLegend');
   if (!container || !legend) return;
 
-  const categories = getCategoryBreakdown(donutMonth, donutYear);
+  const categories = getCategoryBreakdown(statsMonth, statsYear);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
 
   // Get month label
   const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-  const periodLabel = `${monthNames[donutMonth]} ${donutYear}`;
+  const periodLabel = `${monthNames[statsMonth]} ${statsYear}`;
 
   const donutTotalEl = document.getElementById('donutTotal');
   if (donutTotalEl) donutTotalEl.textContent = formatCurrency(total);
@@ -370,9 +370,9 @@ export function renderDonutChart(donutMonth, donutYear) {
   }).join('');
 }
 
-export function renderStats(donutMonth, donutYear) {
-  renderBarChart();
-  renderDonutChart(donutMonth, donutYear);
+export function renderStats(statsMonth, statsYear) {
+  renderBarChart(statsYear);
+  renderDonutChart(statsMonth, statsYear);
 }
 
 // ==================== CATEGORY GRID ====================

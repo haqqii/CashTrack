@@ -1041,13 +1041,13 @@ body {
   color: white;
 }
 
-.donut-filter-bar {
+.stats-filter-bar {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
-.donut-filter-select {
+.stats-filter-select {
   padding: 8px 14px;
   border: 2px solid var(--bg-main);
   border-radius: 8px;
@@ -1061,13 +1061,19 @@ body {
   min-width: 120px;
 }
 
-.donut-filter-select:focus {
+.stats-filter-select:focus {
   outline: none;
   border-color: var(--primary-start);
 }
 
-.donut-filter-select:hover {
+.stats-filter-select:hover {
   border-color: var(--text-muted);
+}
+
+.chart-period-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .bar-chart {
