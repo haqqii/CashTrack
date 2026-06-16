@@ -1070,31 +1070,131 @@ body {
   border-color: var(--text-muted);
 }
 
-.stats-nav-btn {
-  width: 36px;
-  height: 36px;
+.stats-year-input {
+  padding: 8px 14px;
   border: 2px solid var(--bg-main);
   border-radius: 8px;
   background: var(--card-bg);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  text-align: center;
+}
+
+.stats-year-input:focus {
+  outline: none;
+  border-color: var(--primary-start);
+}
+
+.stats-year-input:hover {
+  border-color: var(--text-muted);
+}
+
+.stats-year-input::-webkit-inner-spin-button,
+.stats-year-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 2px solid var(--bg-main);
+  border-radius: 8px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.custom-select-header:hover {
+  border-color: var(--text-muted);
+}
+
+.custom-select.open .custom-select-header {
+  border-color: var(--primary-start);
+}
+
+.select-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 50px;
+  text-align: center;
+}
+
+.select-nav-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   padding: 0;
 }
 
-.stats-nav-btn:hover {
-  border-color: var(--primary-start);
+.select-nav-btn:hover {
+  background: var(--bg-main);
   color: var(--primary-start);
 }
 
-.stats-nav-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  border-color: var(--bg-main);
-  color: var(--text-muted);
+.custom-select-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 100%;
+  background: var(--card-bg);
+  border: 2px solid var(--bg-main);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+
+.custom-select.open .custom-select-options {
+  display: block;
+}
+
+.custom-select-options li {
+  padding: 8px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.custom-select-options li:hover {
+  background: var(--bg-main);
+}
+
+.custom-select-options li.selected {
+  color: var(--primary-start);
+  font-weight: 600;
 }
 
 .chart-period-label {

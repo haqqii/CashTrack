@@ -804,34 +804,17 @@ function initApp() {
 
   // Stats month/year filter
   const statsMonthSelect = document.getElementById('statsMonth');
-  const statsYearSelect = document.getElementById('statsYear');
-  const statsYearPrev = document.getElementById('statsYearPrev');
-  const statsYearNext = document.getElementById('statsYearNext');
-
-  const MIN_YEAR = 2020;
+  const statsYearInput = document.getElementById('statsYearInput');
   const currentYear = new Date().getFullYear();
-
-  // Populate year dropdown (MIN_YEAR to current year + 1)
-  function populateYearDropdown() {
-    if (!statsYearSelect) return;
-    let yearOptions = '';
-    for (let y = currentYear + 1; y >= MIN_YEAR; y--) {
-      yearOptions += `<option value="${y}" ${y === statsYear ? 'selected' : ''}>${y}</option>`;
-    }
-    statsYearSelect.innerHTML = yearOptions;
-  }
-
-  populateYearDropdown();
-
-  // Update navigation buttons state
-  function updateNavButtons() {
-    if (statsYearPrev) statsYearPrev.disabled = statsYear <= MIN_YEAR;
-    if (statsYearNext) statsYearNext.disabled = statsYear >= currentYear + 1;
-  }
 
   // Set current month
   if (statsMonthSelect) {
     statsMonthSelect.value = statsMonth;
+  }
+
+  // Set current year in input
+  if (statsYearInput) {
+    statsYearInput.value = statsYear;
   }
 
   // Update period label
@@ -840,8 +823,6 @@ function initApp() {
   if (periodLabelEl) {
     periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
   }
-
-  updateNavButtons();
 
   // Month change handler
   if (statsMonthSelect) {
@@ -852,36 +833,13 @@ function initApp() {
     });
   }
 
-  // Year change handler
-  if (statsYearSelect) {
-    statsYearSelect.addEventListener('change', () => {
-      statsYear = parseInt(statsYearSelect.value);
-      if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
-      updateNavButtons();
-      renderStats();
-    });
-  }
-
-  // Year navigation handlers
-  if (statsYearPrev) {
-    statsYearPrev.addEventListener('click', () => {
-      if (statsYear > MIN_YEAR) {
-        statsYear--;
+  // Year input handler
+  if (statsYearInput) {
+    statsYearInput.addEventListener('input', () => {
+      const inputYear = parseInt(statsYearInput.value);
+      if (inputYear && inputYear >= 2000 && inputYear <= 2100) {
+        statsYear = inputYear;
         if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
-        statsYearSelect.value = statsYear;
-        updateNavButtons();
-        renderStats();
-      }
-    });
-  }
-
-  if (statsYearNext) {
-    statsYearNext.addEventListener('click', () => {
-      if (statsYear < currentYear + 1) {
-        statsYear++;
-        if (periodLabelEl) periodLabelEl.textContent = `${monthNames[statsMonth]} ${statsYear}`;
-        statsYearSelect.value = statsYear;
-        updateNavButtons();
         renderStats();
       }
     });
@@ -925,6 +883,36 @@ function initApp() {
         renderAll();
         e.target.value = '';
       } catch (err) { showToast(err.message, 'error'); }
+    });
+  }
+
+  // Budget form
+  const addBudgetBtn = document.getElementById('addBudgetBtn');
+  const budgetLimitInput = document.getElementById('budgetLimit');
+
+  // Format budget limit with thousand separator as user types
+  if (budgetLimitInput) {
+    budgetLimitInput.addEventListener('input', (e) => {
+      const value = e.target.value.replace(/\./g, '');
+      if (value) {
+        e.target.value = parseInt(value).toLocaleString('id-ID');
+      }
+    });
+  }
+
+  if (addBudgetBtn) {
+    addBudgetBtn.addEventListener('click', () => {
+      const category = document.getElementById('budgetCategory').value;
+      const limit = parseInt(document.getElementById('budgetLimit').value.replace(/\./g, '')) || 0;
+      if (!category || !limit || limit <= 0) {
+        showToast('Pilih kategori dan masukkan limit budget!', 'error');
+        return;
+      }
+      addBudget(category, limit);
+      showToast('Budget berhasil ditambahkan! 🎯', 'success');
+      document.getElementById('budgetCategory').value = '';
+      document.getElementById('budgetLimit').value = '';
+      renderBudgets();
     });
   }
 
