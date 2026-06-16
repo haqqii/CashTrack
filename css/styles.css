@@ -784,36 +784,6 @@ body {
   color: var(--text-primary);
 }
 
-/* ==================== FILTER BAR ==================== */
-.filter-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  padding: 10px 20px;
-  border: 2px solid var(--bg-main);
-  background: var(--card-bg);
-  border-radius: var(--radius-sm);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-secondary);
-}
-
-.filter-btn:hover {
-  border-color: var(--text-muted);
-}
-
-.filter-btn.active {
-  border-color: var(--primary-start);
-  color: var(--primary-start);
-}
-
 /* ==================== DATE FILTER BAR ==================== */
 .date-filter-bar {
   display: flex;
@@ -1630,19 +1600,6 @@ body {
 
   .search-bar input {
     font-size: 0.9rem;
-  }
-
-  /* Filter bar */
-  .filter-bar {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .filter-btn {
-    flex: 1;
-    min-width: calc(33% - 8px);
-    padding: 10px 12px;
-    font-size: 0.85rem;
   }
 
   /* Date filter */

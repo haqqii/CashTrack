@@ -563,25 +563,31 @@ function filterByDate(transactions) {
   if (!dateFrom && !dateTo) return transactions;
 
   return transactions.filter(t => {
-    const transDate = new Date(t.date);
-    transDate.setHours(0, 0, 0, 0);
+    // Parse date with explicit year, month, day to avoid timezone issues
+    const [tYear, tMonth, tDay] = t.date.split('-').map(Number);
+    const transDate = new Date(tYear, tMonth - 1, tDay);
 
     if (dateFrom && dateTo) {
-      const from = new Date(dateFrom);
-      const to = new Date(dateTo);
-      from.setHours(0, 0, 0, 0);
+      // Range filter: tampilkan transaksi dalam range tersebut
+      const [fYear, fMonth, fDay] = dateFrom.split('-').map(Number);
+      const [toYear, toMonth, toDay] = dateTo.split('-').map(Number);
+      const from = new Date(fYear, fMonth - 1, fDay);
+      const to = new Date(toYear, toMonth - 1, toDay);
       to.setHours(23, 59, 59, 999);
       return transDate >= from && transDate <= to;
     }
 
-    if (dateFrom) {
-      const from = new Date(dateFrom);
-      from.setHours(0, 0, 0, 0);
-      return transDate >= from;
+    if (dateFrom && !dateTo) {
+      // Single date filter: tampilkan transaksi yang tepat di tanggal tersebut
+      const [fYear, fMonth, fDay] = dateFrom.split('-').map(Number);
+      const from = new Date(fYear, fMonth - 1, fDay);
+      return t.date === dateFrom;
     }
 
-    if (dateTo) {
-      const to = new Date(dateTo);
+    if (dateTo && !dateFrom) {
+      // Filter by end date only
+      const [toYear, toMonth, toDay] = dateTo.split('-').map(Number);
+      const to = new Date(toYear, toMonth - 1, toDay);
       to.setHours(23, 59, 59, 999);
       return transDate <= to;
     }
@@ -744,16 +750,6 @@ function initApp() {
     });
   }
 
-  // Filters
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
-      renderAll();
-    });
-  });
-
   // Search
   const searchInput = document.getElementById('searchInput');
   const searchClear = document.getElementById('searchClear');
@@ -777,29 +773,22 @@ function initApp() {
     });
   }
 
-  // Date filter
+  // Date filter - auto filter when date is selected
   const dateFromInput = document.getElementById('dateFrom');
   const dateToInput = document.getElementById('dateTo');
-  const applyDateFilterBtn = document.getElementById('applyDateFilter');
-  const clearDateFilterBtn = document.getElementById('clearDateFilter');
 
-  if (applyDateFilterBtn) {
-    applyDateFilterBtn.addEventListener('click', () => {
-      dateFrom = dateFromInput?.value || null;
-      dateTo = dateToInput?.value || null;
-      renderAll();
-    });
+  function applyDateFilter() {
+    dateFrom = dateFromInput?.value || null;
+    dateTo = dateToInput?.value || null;
+    renderAll();
   }
 
-  if (clearDateFilterBtn) {
-    clearDateFilterBtn.addEventListener('click', () => {
-      if (dateFromInput) dateFromInput.value = '';
-      if (dateToInput) dateToInput.value = '';
-      dateFrom = null;
-      dateTo = null;
-      renderAll();
-      showToast('Filter tanggal direset', 'info');
-    });
+  if (dateFromInput) {
+    dateFromInput.addEventListener('change', applyDateFilter);
+  }
+
+  if (dateToInput) {
+    dateToInput.addEventListener('change', applyDateFilter);
   }
 
   // Stats month/year filter
